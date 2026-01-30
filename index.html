@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Metro Navigator</title>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div class="brand">
+          <div class="logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 15V9C4 5.686 4 4.029 5.025 3.015C6.05 2 7.707 2 11.02 2H12.98C16.293 2 17.95 2 18.975 3.015C20 4.029 20 5.686 20 9V15C20 16.657 20 17.485 19.485 18H4.515C4 17.485 4 16.657 4 15Z" stroke="white" stroke-width="1.5"/>
+              <path d="M4 15H20" stroke="white" stroke-width="1.5"/>
+              <path d="M6 22V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M18 22V18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="12" r="1" fill="white"/>
+              <circle cx="16" cy="12" r="1" fill="white"/>
+            </svg>
+          </div>
+          <h1>Metro Navigator</h1>
+        </div>
+      </header>
+      
+      <main class="main-content">
+        <aside class="controls-panel">
+          <div>
+            <h2>Find Route</h2>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Select your journey details</p>
+          </div>
+          
+          <div class="input-group">
+            <label for="start-station">Start Station</label>
+            <select id="start-station">
+              <option value="" disabled selected>Select station</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="end-station">Destination</label>
+            <select id="end-station">
+              <option value="" disabled selected>Select station</option>
+            </select>
+          </div>
+
+          <button id="find-route-btn" class="btn-primary">Find Best Route</button>
+
+          <div id="results-panel" class="result-card" style="display: none;">
+             <h3 style="margin-bottom: 0.8rem; font-size: 1.1rem;">Journey Summary</h3>
+             <div class="result-stat">
+               <span>Total Time</span>
+               <span id="total-time" class="stat-value">-- min</span>
+             </div>
+             <div class="result-stat">
+               <span>Stations</span>
+               <span id="path-stations-count" class="stat-value">--</span>
+             </div>
+             <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">
+                <span id="path-details"></span>
+             </div>
+          </div>
+        </aside>
+
+        <section class="map-container" id="map-container">
+           <!-- SVG will be injected by main.js -->
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -31,4 +31,27 @@ const registerValidation = (req, res, next) => {
     next();
 };
 
-module.exports = { registerValidation };
+const loginValidation = (req, res, next) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required().messages({
+            'string.email': 'Please include a valid email',
+            'string.empty': 'Email is required',
+            'any.required': 'Email is required'
+        }),
+        password: Joi.string().required().messages({
+            'string.empty': 'Password is required',
+            'any.required': 'Password is required'
+        })
+    });
+
+    const { error } = schema.validate(req.body);
+
+    if (error) {
+        res.status(400);
+        throw new Error(error.details[0].message);
+    }
+
+    next();
+};
+
+module.exports = { registerValidation, loginValidation };

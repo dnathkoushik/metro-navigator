@@ -318,7 +318,70 @@ const getMinTimePath = async (req, res) => {
     }
 };
 
+const DISTANCE_PER_STATION = 1.5; // km (approx average)
+
+// Build graph specifically for Distance
+const buildDistanceGraph = (stations) => {
+    const adj = {};
+
+    stations.forEach(s => {
+        adj[s.name] = [];
+    });
+
+    const lines = {};
+    stations.forEach(station => {
+        station.lines.forEach(l => {
+            if (!lines[l.line]) lines[l.line] = [];
+            lines[l.line].push({ name: station.name, sequence: l.sequence });
+        });
+    });
+
+    Object.keys(lines).forEach(lineName => {
+        lines[lineName].sort((a, b) => a.sequence - b.sequence);
+        for (let i = 0; i < lines[lineName].length - 1; i++) {
+            const u = lines[lineName][i].name;
+            const v = lines[lineName][i + 1].name;
+
+            // Weight is distance
+            const weight = DISTANCE_PER_STATION;
+
+            adj[u].push({ node: v, weight, line: lineName });
+            adj[v].push({ node: u, weight, line: lineName });
+        }
+    });
+    return adj;
+};
+
+const getMinDistancePath = async (req, res) => {
+    try {
+        const { from, to } = req.body;
+        if (!from || !to) return res.status(400).json({ message: 'Please provide start and destination stations' });
+
+        const stations = await Station.find({});
+        const adj = buildDistanceGraph(stations);
+
+        if (!adj[from] || !adj[to]) return res.status(404).json({ message: 'Invalid station names' });
+
+        const { path, totalTime: totalDistance } = getShortestPathDijkstra(from, to, adj);
+
+        if (totalDistance === -1) {
+            return res.status(404).json({ message: 'No path found' });
+        }
+
+        res.json({
+            path,
+            distance: totalDistance + " km",
+            message: "Shortest path based on minimum distance (Dijkstra)"
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     getMinStationsPath,
-    getMinTimePath
+    getMinTimePath,
+    getMinDistancePath
 };

@@ -86,7 +86,7 @@ const getShortestPathBFS = (start, end, adj) => {
     return path.reverse(); // Reverse to get [src, ..., dest]
 };
 
-const findPath = async (req, res) => {
+const getMinStationsPath = async (req, res) => {
     try {
         const { from, to } = req.body;
 
@@ -121,5 +121,5 @@ const findPath = async (req, res) => {
 };
 
 module.exports = {
-    findPath
+    getMinStationsPath
 };

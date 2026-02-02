@@ -4,6 +4,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const authRoutes = require('./routes/authRoutes');
+const pathRoutes = require('./routes/pathRoutes');
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 
@@ -38,6 +39,7 @@ app.use(cors());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/path', pathRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

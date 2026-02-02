@@ -70,4 +70,16 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { authUser, registerUser };
+// @desc    Get user profile
+// @route   GET /api/auth/profile
+// @access  Private
+const getUserProfile = asyncHandler(async (req, res) => {
+    res.json({
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        type: req.user.type,
+    });
+});
+
+module.exports = { authUser, registerUser, getUserProfile };

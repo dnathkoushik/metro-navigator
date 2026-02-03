@@ -141,14 +141,14 @@ function renderMap() {
     const circle = document.createElementNS(svgNS, "circle");
     circle.setAttribute("cx", s.x);
     circle.setAttribute("cy", s.y);
-    circle.setAttribute("r", s.type === 'hub' ? "12" : "8");
+    circle.setAttribute("r", s.type === 'hub' ? "14" : "10");
     circle.setAttribute("class", "station-node");
     circle.dataset.id = s.id;
 
     // Label
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", s.x);
-    text.setAttribute("y", s.y - 20);
+    text.setAttribute("y", s.y - 25);
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("fill", "var(--text-main)");
     text.setAttribute("font-size", "12px");
@@ -196,7 +196,7 @@ function highlightStation(id, type) {
     if (n.dataset.id === id) {
       n.style.fill = type === 'start' ? 'var(--primary)' : 'var(--secondary)';
       n.style.stroke = 'white';
-      n.setAttribute('r', '14');
+      n.setAttribute('r', '18');
     }
   });
 }
@@ -207,7 +207,7 @@ function resetVisuals() {
     const s = stations.find(st => st.id === n.dataset.id);
     n.style.fill = 'var(--bg-dark)';
     n.style.stroke = 'var(--text-main)';
-    n.setAttribute('r', s.type === 'hub' ? "12" : "8");
+    n.setAttribute('r', s.type === 'hub' ? "14" : "10");
   });
 
   const lines = document.querySelectorAll('.connection-line');

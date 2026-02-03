@@ -10,6 +10,9 @@ The backend service for the Metro Navigator application, built with Node.js, Exp
     *   **Minimum Stations**: Finds the path with the fewest stops (BFS).
     *   **Minimum Time**: Finds the quickest path considering travel time and transfer penalties (Dijkstra).
     *   **Minimum Distance**: Finds the shortest physical path (Dijkstra).
+*   **Admin Dashboard**:
+    *   **Station Management**: Add or remove stations dynamically.
+    *   **User Management**: Block/Unblock users to restrict access.
 
 ## 🛠️ Tech Stack
 
@@ -86,6 +89,16 @@ All path finding endpoints require a valid JWT token in the `Authorization` head
 | `POST` | `/path/min-stations` | **Min Stations** | Path with fewest stops | `{ "from": "Station A", "to": "Station B" }` |
 | `POST` | `/path/min-time` | **Min Time** | Quickest path (time-weighted) | `{ "from": "Station A", "to": "Station B" }` |
 | `POST` | `/path/min-distance` | **Min Distance** | Shortest physical distance | `{ "from": "Station A", "to": "Station B" }` |
+
+### 4. Admin Management
+
+All admin endpoints require a valid **Admin Token** in the `Authorization` header.
+
+| Method | Endpoint | Description | Body |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/admin/stations` | Add a new station | `{ "name": "Station X", "lines": [{"line": "Red", "sequence": 10}] }` |
+| `DELETE` | `/admin/stations/:id` | Delete a station | N/A |
+| `PUT` | `/admin/users/:id/block` | Block/Unblock a user | N/A |
 
 ## 🏗️ Folder Structure
 

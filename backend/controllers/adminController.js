@@ -6,7 +6,7 @@ const User = require('../models/User');
 // @route   POST /api/admin/stations
 // @access  Private/Admin
 const addStation = asyncHandler(async (req, res) => {
-    const { name, lines, isInterchange } = req.body;
+    const { name, lines, isInterchange, x, y } = req.body;
 
     const stationExists = await Station.findOne({ name });
 
@@ -18,7 +18,9 @@ const addStation = asyncHandler(async (req, res) => {
     const station = await Station.create({
         name,
         lines,
-        isInterchange: isInterchange || false
+        isInterchange: isInterchange || false,
+        x,
+        y
     });
 
     if (station) {

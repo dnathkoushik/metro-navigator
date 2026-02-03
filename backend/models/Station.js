@@ -19,6 +19,16 @@ const stationSchema = mongoose.Schema({
     isInterchange: {
         type: Boolean,
         default: false
+    },
+    x: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    y: {
+        type: Number,
+        required: true,
+        default: 0
     }
 }, {
     timestamps: true

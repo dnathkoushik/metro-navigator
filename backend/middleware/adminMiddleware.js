@@ -19,7 +19,9 @@ const addStationValidation = (req, res, next) => {
             'array.min': 'At least one line is required for the station',
             'any.required': 'Lines are required'
         }),
-        isInterchange: Joi.boolean().optional()
+        isInterchange: Joi.boolean().optional(),
+        x: Joi.number().required(),
+        y: Joi.number().required()
     });
 
     const { error } = schema.validate(req.body);

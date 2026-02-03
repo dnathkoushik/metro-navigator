@@ -42,6 +42,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/path', pathRoutes);
 const stationRoutes = require('./routes/stationRoutes');
 app.use('/api/stations', stationRoutes);
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

@@ -6,8 +6,20 @@ const addStationValidation = (req, res, next) => {
             'string.empty': 'Station name is required',
             'any.required': 'Station name is required'
         }),
-        // Add other station fields validation here as per requirement (graph like structure)
-        // For now just name is validated
+        lines: Joi.array().items(
+            Joi.object({
+                line: Joi.string().required().messages({
+                    'any.required': 'Line name is required'
+                }),
+                sequence: Joi.number().required().messages({
+                    'any.required': 'Sequence number is required'
+                })
+            })
+        ).min(1).required().messages({
+            'array.min': 'At least one line is required for the station',
+            'any.required': 'Lines are required'
+        }),
+        isInterchange: Joi.boolean().optional()
     });
 
     const { error } = schema.validate(req.body);

@@ -6,7 +6,32 @@ const User = require('../models/User');
 // @route   POST /api/admin/stations
 // @access  Private/Admin
 const addStation = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: 'Add station functionality' });
+    const { name, lines, isInterchange } = req.body;
+
+    const stationExists = await Station.findOne({ name });
+
+    if (stationExists) {
+        res.status(400);
+        throw new Error('Station already exists');
+    }
+
+    const station = await Station.create({
+        name,
+        lines,
+        isInterchange: isInterchange || false
+    });
+
+    if (station) {
+        res.status(201).json({
+            _id: station._id,
+            name: station.name,
+            lines: station.lines,
+            isInterchange: station.isInterchange
+        });
+    } else {
+        res.status(400);
+        throw new Error('Invalid station data');
+    }
 });
 
 // @desc    Delete a station

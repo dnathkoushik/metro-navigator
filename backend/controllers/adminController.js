@@ -53,7 +53,22 @@ const deleteStation = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/users/:id/block
 // @access  Private/Admin
 const blockUser = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: 'Block user functionality' });
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+        user.isBlocked = !user.isBlocked;
+        const updatedUser = await user.save();
+        res.status(200).json({
+            _id: updatedUser._id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            isBlocked: updatedUser.isBlocked,
+            message: updatedUser.isBlocked ? 'User blocked' : 'User unblocked'
+        });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
 });
 
 module.exports = {

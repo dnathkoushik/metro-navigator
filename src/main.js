@@ -95,7 +95,7 @@ function renderMap() {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("id", "metro-map");
-  svg.setAttribute("viewBox", "0 0 800 600");
+  svg.setAttribute("viewBox", "0 0 1200 1500");
   svg.style.width = "100%";
   svg.style.height = "100%";
 

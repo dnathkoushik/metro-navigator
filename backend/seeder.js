@@ -48,69 +48,79 @@ const importData = async () => {
             }
         ];
 
-        // Approximate coordinates for 800x600 visualization
+        // Coordinates for 1200x1500 visualization
+        // Center X ~ 600, Center Y ~ 600 (Esplanade)
+        const C_X = 600;
+        const C_Y = 600;
+        const Y_SPACING = 50;
+        const X_SPACING = 60;
+
         const coordinates = {
-            // Blue Line (North to South)
-            "Dakshineswar": { x: 350, y: 50 },
-            "Baranagar": { x: 350, y: 80 },
-            "Noapara": { x: 350, y: 110 },
-            "Dum Dum": { x: 350, y: 140 },
-            "Belgachhia": { x: 350, y: 170 },
-            "Shyambazar": { x: 350, y: 200 },
-            "Shobhabazar Sutanuti": { x: 350, y: 230 },
-            "Girish Park": { x: 350, y: 260 },
-            "Mahatma Gandhi Road": { x: 350, y: 290 },
-            "Central": { x: 350, y: 320 },
-            "Chandni Chowk": { x: 350, y: 350 },
-            "Esplanade": { x: 400, y: 350 }, // Hub
-            "Park Street": { x: 400, y: 380 },
-            "Maidan": { x: 400, y: 410 },
-            "Rabindra Sadan": { x: 400, y: 440 },
-            "Netaji Bhavan": { x: 400, y: 470 },
-            "Jatin Das Park": { x: 400, y: 500 },
-            "Kalighat": { x: 400, y: 530 },
-            "Rabindra Sarobar": { x: 400, y: 560 },
-            "Mahanayak Uttam Kumar": { x: 400, y: 590 },
-            "Netaji": { x: 400, y: 620 }, // Extend a bit
-            "Masterda Surya Sen": { x: 400, y: 650 },
-            "Gitanjali": { x: 400, y: 680 },
-            "Kavi Nazrul": { x: 400, y: 710 },
-            "Shahid Khudiram": { x: 400, y: 740 },
-            "Kavi Subhash": { x: 400, y: 770 },
+            // Blue Line (North - South)
+            // Starts top center
+            "Dakshineswar": { x: C_X, y: 50 },
+            "Baranagar": { x: C_X, y: 100 },
+            "Noapara": { x: C_X, y: 150 },
+            "Dum Dum": { x: C_X, y: 200 },
+            "Belgachhia": { x: C_X, y: 250 },
+            "Shyambazar": { x: C_X, y: 300 },
+            "Shobhabazar Sutanuti": { x: C_X, y: 350 },
+            "Girish Park": { x: C_X, y: 400 },
+            "Mahatma Gandhi Road": { x: C_X, y: 450 },
+            "Central": { x: C_X, y: 500 },
+            "Chandni Chowk": { x: C_X, y: 550 },
+            "Esplanade": { x: C_X, y: C_Y }, // 600
+            "Park Street": { x: C_X, y: 650 },
+            "Maidan": { x: C_X, y: 700 },
+            "Rabindra Sadan": { x: C_X, y: 750 },
+            "Netaji Bhavan": { x: C_X, y: 800 },
+            "Jatin Das Park": { x: C_X, y: 850 },
+            "Kalighat": { x: C_X, y: 900 },
+            "Rabindra Sarobar": { x: C_X, y: 950 },
+            "Mahanayak Uttam Kumar": { x: C_X, y: 1000 },
+            "Netaji": { x: C_X, y: 1050 },
+            "Masterda Surya Sen": { x: C_X, y: 1100 },
+            "Gitanjali": { x: C_X, y: 1150 },
+            "Kavi Nazrul": { x: C_X, y: 1200 },
+            "Shahid Khudiram": { x: C_X, y: 1250 },
+            "Kavi Subhash": { x: C_X, y: 1300 },
 
-            // Green Line (East to West) - Intersects Esplanade
-            "Howrah Maidan": { x: 100, y: 350 },
-            "Howrah": { x: 160, y: 350 },
-            "Mahakaran": { x: 220, y: 350 },
-            // Esplanade is defined above
-            "Sealdah": { x: 480, y: 350 },
-            "Phoolbagan": { x: 540, y: 350 },
-            "Salt Lake Stadium": { x: 580, y: 350 },
-            "Bengal Chemical": { x: 620, y: 350 },
-            "City Centre": { x: 660, y: 350 },
-            "Central Park": { x: 700, y: 350 },
-            "Karunamoyee": { x: 740, y: 350 },
-            "Salt Lake Sector-V": { x: 780, y: 350 },
+            // Green Line (East - West)
+            // Intersects Esplanade (600, 600)
+            "Howrah Maidan": { x: C_X - (3 * X_SPACING + 40), y: C_Y }, // 380, 600
+            "Howrah": { x: C_X - (2 * X_SPACING + 20), y: C_Y }, // 460
+            "Mahakaran": { x: C_X - X_SPACING, y: C_Y }, // 540
+            // Esplanade
+            "Sealdah": { x: C_X + 100, y: C_Y }, // 700
+            "Phoolbagan": { x: C_X + 160, y: C_Y },
+            "Salt Lake Stadium": { x: C_X + 220, y: C_Y },
+            "Bengal Chemical": { x: C_X + 280, y: C_Y },
+            "City Centre": { x: C_X + 340, y: C_Y },
+            "Central Park": { x: C_X + 400, y: C_Y },
+            "Karunamoyee": { x: C_X + 460, y: C_Y },
+            "Salt Lake Sector-V": { x: C_X + 520, y: C_Y },
 
-            // Purple Line (South West) connecting from Joka
-            "Joka": { x: 100, y: 600 },
-            "Thakurpukur": { x: 140, y: 570 },
-            "Sakherbazar": { x: 180, y: 540 },
-            "Behala Chowrasta": { x: 220, y: 510 },
-            "Behala Bazar": { x: 260, y: 480 },
-            "Taratala": { x: 300, y: 450 },
-            "Majerhat": { x: 340, y: 420 }, // Close to main line?
+            // Purple Line (Joka to Majerhat)
+            // South West Area. 
+            // Needs to be distinct. 
+            "Joka": { x: 200, y: 1100 },
+            "Thakurpukur": { x: 200, y: 1050 },
+            "Sakherbazar": { x: 200, y: 1000 },
+            "Behala Chowrasta": { x: 200, y: 950 },
+            "Behala Bazar": { x: 200, y: 900 },
+            "Taratala": { x: 200, y: 850 },
+            "Majerhat": { x: 280, y: 800 },
 
-            // Orange Line (South East) connecting Kavi Subhash
-            // Kavi Subhash is defined
-            "Satyajit Ray": { x: 450, y: 750 },
-            "Jyotirindra Nandi": { x: 480, y: 720 },
-            "Kavi Sukanta": { x: 510, y: 690 },
-            "Hemanta Mukhopadhyay": { x: 540, y: 660 },
-            "VIP Bazar": { x: 570, y: 630 },
-            "Ritwik Ghatak": { x: 600, y: 600 },
-            "Barun Sengupta": { x: 630, y: 570 },
-            "Beliaghata": { x: 660, y: 540 }
+            // Orange Line (Connecting Kavi Subhash and going North/East)
+            // Kavi Subhash is at (600, 1300)
+            "Satyajit Ray": { x: 700, y: 1250 },
+            "Jyotirindra Nandi": { x: 750, y: 1200 },
+            "Kavi Sukanta": { x: 800, y: 1150 },
+            "Hemanta Mukhopadhyay": { x: 850, y: 1100 },
+            "VIP Bazar": { x: 900, y: 1050 },
+            "Ritwik Ghatak": { x: 950, y: 1000 },
+            "Barun Sengupta": { x: 1000, y: 950 },
+            "Beliaghata": { x: 1050, y: 900 }
         };
 
         const stationMap = {};

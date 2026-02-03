@@ -38,7 +38,15 @@ const addStation = asyncHandler(async (req, res) => {
 // @route   DELETE /api/admin/stations/:id
 // @access  Private/Admin
 const deleteStation = asyncHandler(async (req, res) => {
-    res.status(200).json({ message: 'Delete station functionality' });
+    const station = await Station.findById(req.params.id);
+
+    if (station) {
+        await station.deleteOne();
+        res.status(200).json({ message: 'Station removed' });
+    } else {
+        res.status(404);
+        throw new Error('Station not found');
+    }
 });
 
 // @desc    Block a customer (user)

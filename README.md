@@ -8,8 +8,8 @@ The backend service for the Metro Navigator application, built with Node.js, Exp
 *   **Station Management**: API to retrieve all metro stations.
 *   **Intelligent Pathfinding**:
     *   **Minimum Stations**: Finds the path with the fewest stops (BFS).
-    *   **Minimum Time**: Finds the quickest path considering travel time and transfer penalties (Dijkstra).
-    *   **Minimum Distance**: Finds the shortest physical path (Dijkstra).
+    *   **Minimum Time**: Finds the quickest path considering travel time and **interchange penalties** (Weighted Dijkstra).
+    *   **Minimum Cost**: Calculates the cheapest path based on distance-based fare rules.
 *   **Admin Dashboard**:
     *   **Station Management**: Add or remove stations dynamically.
     *   **User Management**: Block/Unblock users to restrict access.
@@ -18,6 +18,7 @@ The backend service for the Metro Navigator application, built with Node.js, Exp
 
 *   **Runtime**: Node.js
 *   **Framework**: Express.js
+*   **Frontend**: Vite (Vanilla JS)
 *   **Database**: MongoDB
 *   **ODM**: Mongoose
 *   **Authentication**: JSON Web Tokens (JWT) & bcryptjs
@@ -35,12 +36,13 @@ The backend service for the Metro Navigator application, built with Node.js, Exp
 1.  Clone the repository:
     ```bash
     git clone https://github.com/dnathkoushik/metro-navigator.git
-    cd metro-navigator/backend
+    cd metro-navigator
     ```
 
-2.  Install dependencies:
+2.  Install dependencies (Root & Backend):
     ```bash
     npm install
+    cd backend && npm install
     ```
 
 3.  Set up environment variables:
@@ -54,14 +56,14 @@ The backend service for the Metro Navigator application, built with Node.js, Exp
 4.  Seed the Database (Optional):
     Populate the database with initial station data.
     ```bash
+    cd backend
     npm run data:import
     ```
 
 
-5.  Run the server:
-    ```bash
-    npm run dev
-    ```
+5.  Run the application:
+    *   **Backend**: `cd backend && npm run dev`
+    *   **Frontend**: `npm run dev` (from root)
 
 ## 📚 API Documentation (User Side)
 
@@ -88,8 +90,8 @@ All path finding endpoints require a valid JWT token in the `Authorization` head
 | Method | Endpoint | Query Type | Description | Body |
 | :--- | :--- | :--- | :--- | :--- |
 | `POST` | `/path/min-stations` | **Min Stations** | Path with fewest stops | `{ "from": "Station A", "to": "Station B" }` |
-| `POST` | `/path/min-time` | **Min Time** | Quickest path (time-weighted) | `{ "from": "Station A", "to": "Station B" }` |
-| `POST` | `/path/min-distance` | **Min Distance** | Shortest physical distance | `{ "from": "Station A", "to": "Station B" }` |
+| `POST` | `/path/min-time` | **Min Time** | Quickest path (time-weighted + transfers) | `{ "from": "Station A", "to": "Station B" }` |
+| `POST` | `/path/min-cost` | **Min Cost** | Cheapest path (fare calculated) | `{ "from": "Station A", "to": "Station B" }` |
 
 ### 4. Admin Management
 

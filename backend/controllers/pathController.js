@@ -182,112 +182,86 @@ const buildWeightedGraph = (stations) => {
 };
 
 // Dijkstra Algorithm for Minimum Time
-const getShortestPathDijkstra = (start, end, adj) => {
+// Dijkstra Algorithm with Line Transfer Penalty
+const getShortestPathDijkstra = (start, end, adj, transferPenalty = 0) => {
+    // Priority Queue to store { station, line, time }
     const pq = new PriorityQueue();
-    const distances = {};
-    const previous = {};
 
-    // Initialize
-    for (let currentVertex in adj) {
-        if (currentVertex === start) {
-            distances[currentVertex] = 0;
-            pq.enqueue({ station: currentVertex, line: null }, 0);
-        } else {
-            distances[currentVertex] = Infinity;
-        } // We don't need to enqueue infinite nodes immediately for optimization, or we can. 
-        // Standard lazy Dijkstra: just push start.
-        previous[currentVertex] = null;
-    }
+    // Distances map: Key = "StationName-LineName" -> Value = Time
+    // We need to track the line we arrived on to calculate transfer costs
+    const minDists = {};
 
-    // We need to store { station, line } in the queue to track transfers
-    // However, the standard `dist` array usually just tracks min cost to a node.
-    // If we want to penalize transfers, the state needs to include the arrival line.
-    // Let's stick to the simple node-based Dijkstra first as requested, 
-    // but we can add transfer penalty if the line changes between edges.
+    // Helper to generate key
+    const getKey = (station, line) => line ? `${station}-${line}` : station;
 
-    // Refined State for Queue: { station, arrivalLine }
-    // Refined Distances: We might need dist[station] but since transfer depends on arrival line,
-    // sophisticated Dijkstra often splits nodes: (Station, Line). 
-    // BUT for simplicity matching the user's snippet which acts on 'adj[u]', 
-    // let's try to infer transfer cost dynamically or keep it simple.
+    // Initialize with start station
+    // We strictly assume starting at 'start' has 0 cost. 
+    // We effectively haven't 'entered' a line yet, so line is null.
+    pq.enqueue({ station: start, line: null }, 0);
+    minDists[getKey(start, null)] = 0;
 
-    // To properly support Transfer Costs in a simple Dijkstra on Stations:
-    // We can't strictly do it without node splitting or keeping state. 
-    // Let's implement a modified Dijkstra where `dist` map keys are complex: "StationName" 
-    // (This is a simplification. If `u` is reached from Line A, going to Line B adds cost).
+    const predecessors = {}; // Key: "Station-Line", Value: { station, line } (The node we came from)
 
-    // Let's do the standard Dijkstra on nodes first, assuming we calculate weight properly.
-    // Issue: Standard Dijkstra on simple graph doesn't know "previous line".
-    // Solution: The Graph State should be (Station, Line).
+    let finalState = null; // Store the end state { station: end, line: FinalLine } to backtrack
 
-    // Let's use a Map for distances where key = `${station}-${line}`
-    const minDists = {}; // Key: "StationName-LineName" -> Time
+    while (!pq.isEmpty()) {
+        const { val: current, priority: currentTime } = pq.dequeue();
+        const { station: u, line: currentLine } = current;
 
-    pq.values = []; // Clear if generic
-    // Start: We can start on "any" line or a "null" line. 
-    // Since we are at start station, we haven't entered a line yet.
-    // Neighbors will determine the line.
+        // Optimization: If we found a faster way to this specific state (Station + Line), skip
+        if (currentTime > (minDists[getKey(u, currentLine)] || Infinity)) continue;
 
-    // Let's stick to the User's C++ structure:
-    // pair<vector<int>, int> Graph::Dijkstra(int src, int dest)
-    // The user's snippet DOES NOT handle line transfers explicitly in the state.
-    // It just uses `dist[v] = dist[u] + weight`.
-    // So I will implement exactly that first (Standard Node Dijkstra).
-    // If we need transfer weights, we will simple add them if we can detect.
-
-    // *Simplified Implementation fitting the request*
-    const dist = {};
-    const pred = {};
-    const INF = Infinity;
-
-    for (const key in adj) {
-        dist[key] = INF;
-        pred[key] = null;
-    }
-
-    dist[start] = 0;
-
-    // Re-init PQ for this specific logic
-    const pqSimple = new PriorityQueue();
-    pqSimple.enqueue(start, 0);
-
-    while (!pqSimple.isEmpty()) {
-        const { val: u, priority: currentDist } = pqSimple.dequeue();
-
-        if (currentDist > dist[u]) continue;
-        if (u === end) break;
+        // Check if we reached destination
+        if (u === end) {
+            // We found a path. Since it's a priority queue, this is the first time we hit 'end' 
+            // with the shortest time for this specific path. 
+            // Note: We might reach 'end' via Line A faster than Line B. 
+            // Because we pop minimal total time, the first time we pop 'end' (any line) is the shortest overall.
+            finalState = { station: u, line: currentLine };
+            break;
+        }
 
         if (adj[u]) {
             for (let neighbor of adj[u]) {
                 const v = neighbor.node;
-                // Basic weight provided by graph
-                let weight = neighbor.weight;
+                const nextLine = neighbor.line;
+                const weight = neighbor.weight;
 
-                // IMPORTANT: To add transfer penalty, we need to know how we got to 'u'.
-                // The 'pred' array only stores the node name. 
-                // We'll peek at pred[u] to see the line, but that's expensive.
-                // For now, let's strictly follow the provided C++ logic (Simple Weighted Dijkstra).
+                // Calculate Cost
+                let newTime = currentTime + weight;
 
-                if (dist[u] + weight < dist[v]) {
-                    dist[v] = dist[u] + weight;
-                    pred[v] = u;
-                    pqSimple.enqueue(v, dist[v]);
+                // Add transfer penalty if we are switching lines
+                // currentLine === null means we are starting, so no penalty
+                if (currentLine !== null && currentLine !== nextLine) {
+                    newTime += transferPenalty;
+                }
+
+                // Relaxation
+                const vKey = getKey(v, nextLine);
+                if (newTime < (minDists[vKey] || Infinity)) {
+                    minDists[vKey] = newTime;
+                    predecessors[vKey] = { station: u, line: currentLine };
+                    pq.enqueue({ station: v, line: nextLine }, newTime);
                 }
             }
         }
     }
 
-    // Reconstruct
-    const path = [];
-    if (dist[end] === INF) return { path: [], totalTime: -1 };
+    // Reconstruct Path
+    if (!finalState) return { path: [], totalTime: -1 };
 
-    let curr = end;
-    while (curr !== null) {
-        path.push(curr);
-        curr = pred[curr];
+    const path = [];
+    let currState = finalState;
+
+    while (currState) {
+        path.push(currState.station);
+        const prev = predecessors[getKey(currState.station, currState.line)];
+        currState = prev;
     }
 
-    return { path: path.reverse(), totalTime: dist[end] };
+    // Clean up path: Remove duplicates if any (though logic shouldn't produce adjacent duplicates acting as transitions)
+    // The logic produces [End, ..., Start]. Reverse it.
+    return { path: path.reverse(), totalTime: minDists[getKey(finalState.station, finalState.line)] };
 };
 
 const getMinTimePath = async (req, res) => {
@@ -300,7 +274,8 @@ const getMinTimePath = async (req, res) => {
 
         if (!adj[from] || !adj[to]) return res.status(404).json({ message: 'Invalid station names' });
 
-        const { path, totalTime } = getShortestPathDijkstra(from, to, adj);
+        // Apply Transfer Penalty for Time (e.g., 5 minutes)
+        const { path, totalTime } = getShortestPathDijkstra(from, to, adj, TIME_TRANSFER);
 
         if (totalTime === -1) {
             return res.status(404).json({ message: 'No path found' });
@@ -309,7 +284,7 @@ const getMinTimePath = async (req, res) => {
         res.json({
             path,
             time: totalTime,
-            message: "Shortest path based on minimum time (Dijkstra)"
+            message: "Shortest path based on minimum time (Intelligent Dijkstra with Transfers)"
         });
 
     } catch (error) {
@@ -352,7 +327,15 @@ const buildDistanceGraph = (stations) => {
     return adj;
 };
 
-const getMinDistancePath = async (req, res) => {
+const calculateFare = (distance) => {
+    if (distance <= 2) return 5;
+    if (distance <= 5) return 10;
+    if (distance <= 10) return 15;
+    if (distance <= 20) return 20;
+    return 25;
+};
+
+const getMinCostPath = async (req, res) => {
     try {
         const { from, to } = req.body;
         if (!from || !to) return res.status(400).json({ message: 'Please provide start and destination stations' });
@@ -362,16 +345,19 @@ const getMinDistancePath = async (req, res) => {
 
         if (!adj[from] || !adj[to]) return res.status(404).json({ message: 'Invalid station names' });
 
-        const { path, totalTime: totalDistance } = getShortestPathDijkstra(from, to, adj);
+        const { path, totalTime: totalDistance } = getShortestPathDijkstra(from, to, adj, 0);
 
         if (totalDistance === -1) {
             return res.status(404).json({ message: 'No path found' });
         }
 
+        const cost = calculateFare(totalDistance);
+
         res.json({
             path,
-            distance: totalDistance + " km",
-            message: "Shortest path based on minimum distance (Dijkstra)"
+            distance: totalDistance.toFixed(2) + " km",
+            cost: cost,
+            message: "Shortest path based on minimum cost (Fare calculated via distance)"
         });
 
     } catch (error) {
@@ -383,5 +369,5 @@ const getMinDistancePath = async (req, res) => {
 module.exports = {
     getMinStationsPath,
     getMinTimePath,
-    getMinDistancePath
+    getMinCostPath
 };

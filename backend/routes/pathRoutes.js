@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getMinStationsPath, getMinTimePath, getMinDistancePath } = require('../controllers/pathController');
+const { getMinStationsPath, getMinTimePath, getMinCostPath } = require('../controllers/pathController');
 const { protect } = require('../middleware/authMiddleware');
 const { validatePathQuery } = require('../middleware/pathMiddleware');
 // @route   POST /api/path/min-stations
@@ -11,8 +11,8 @@ router.post('/min-stations', protect, validatePathQuery, getMinStationsPath);
 // @desc    Get shortest path with minimum time
 router.post('/min-time', protect, validatePathQuery, getMinTimePath);
 
-// @route   POST /api/path/min-distance
-// @desc    Get shortest path with minimum distance
-router.post('/min-distance', protect, validatePathQuery, getMinDistancePath);
+// @route   POST /api/path/min-cost
+// @desc    Get shortest path with minimum cost
+router.post('/min-cost', protect, validatePathQuery, getMinCostPath);
 
 module.exports = router;

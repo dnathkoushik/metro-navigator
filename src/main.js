@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let endpoint = '/path/min-time';
     if (priority === 'stations') endpoint = '/path/min-stations';
-    if (priority === 'cost') endpoint = '/path/min-distance';
+    if (priority === 'cost') endpoint = '/path/min-cost';
 
     try {
       const res = await fetch(`${API_URL}${endpoint}`, {
@@ -450,9 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (priority === 'stations') {
         resultValue = data.stationsCount;
         label = "Count";
-      } else if (priority === 'cost') { // min-distance
-        resultValue = data.distance;
-        label = "Distance";
+      } else if (priority === 'cost') { // min-cost
+        resultValue = '₹' + data.cost;
+        label = "Cost";
       } else {
         resultValue = data.time + " min";
         label = "Time";

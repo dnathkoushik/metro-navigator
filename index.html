@@ -5,7 +5,9 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Metro Navigator</title>
+  <meta name="description"
+    content="Metro Navigator - Explore metro networks across India. Find the fastest routes in Delhi, Mumbai, Kolkata, Bangalore, Chennai, and Hyderabad." />
+  <title>Metro Navigator India</title>
 </head>
 
 <body>
@@ -26,7 +28,11 @@
         </div>
         <h1>Metro Navigator</h1>
       </div>
-      <button id="logout-btn" class="btn-primary" style="padding: 0.5rem 1rem; display: none;">Logout</button>
+      <div class="header-right">
+        <span id="city-badge" class="city-badge" style="display:none;"></span>
+        <button id="change-city-btn" class="btn-secondary" style="display: none;">Change City</button>
+        <button id="logout-btn" class="btn-primary" style="padding: 0.5rem 1rem; display: none;">Logout</button>
+      </div>
     </header>
 
     <!-- Auth Section -->
@@ -69,6 +75,34 @@
         <p style="margin-top: 1rem; text-align: center; color: var(--text-muted);">
           Already have an account? <a href="#" id="show-login" style="color: var(--accent);">Login</a>
         </p>
+      </div>
+    </div>
+
+    <!-- City Selection Screen -->
+    <div id="city-selection" style="display: none;">
+      <div class="city-hero">
+        <div class="city-hero-content">
+          <div class="hero-badge">🇮🇳 India Metro Network</div>
+          <h2 class="city-hero-title">Choose Your City</h2>
+          <p class="city-hero-subtitle">Explore metro networks across India's major cities</p>
+        </div>
+        <div class="search-bar-wrapper">
+          <div class="search-bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input type="text" id="city-search" placeholder="Search city..." autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div id="cities-grid" class="cities-grid">
+        <!-- City cards injected by JS -->
+        <div class="city-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading cities...</p>
+        </div>
       </div>
     </div>
 

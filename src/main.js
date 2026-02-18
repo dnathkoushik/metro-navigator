@@ -2,11 +2,13 @@ import './style.css'
 
 const API_URL = 'http://localhost:5000/api';
 
-// State
+// ─── State ────────────────────────────────────────────────────────────────────
 let stations = [];
 let connections = [];
+let selectedCity = null;   // { name, slug, state, ... }
+let token = localStorage.getItem('metro-token');
 
-// Line Colors Configuration
+// ─── Line Colors ──────────────────────────────────────────────────────────────
 const LINE_COLORS = {
   'Red': '#ef4444',
   'Blue': '#3b82f6',
@@ -15,70 +17,204 @@ const LINE_COLORS = {
   'Purple': '#a855f7',
   'Orange': '#f97316',
   'Pink': '#ec4899',
+  'Line 1': '#6366f1',
+  'Line 2A': '#22d3ee',
+  'Line 7': '#f97316',
   'Default': '#94a3b8'
 };
 
 function getLineColor(lineName) {
   if (!lineName) return LINE_COLORS['Default'];
-  // Try to match partial (e.g. "Red Line" -> "Red")
   const key = Object.keys(LINE_COLORS).find(k => lineName.includes(k));
   return key ? LINE_COLORS[key] : LINE_COLORS['Default'];
 }
 
-// Auth State
-let token = localStorage.getItem('metro-token');
+// ─── City Emoji Map ───────────────────────────────────────────────────────────
+const CITY_EMOJIS = {
+  kolkata: '🏙️',
+  delhi: '🕌',
+  mumbai: '🌊',
+  bangalore: '💻',
+  chennai: '🏛️',
+  hyderabad: '💎'
+};
 
-// Auth DOM Elements
+const CITY_GRADIENTS = {
+  kolkata: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+  delhi: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+  mumbai: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+  bangalore: 'linear-gradient(135deg, #22c55e, #16a34a)',
+  chennai: 'linear-gradient(135deg, #f97316, #ef4444)',
+  hyderabad: 'linear-gradient(135deg, #ec4899, #a855f7)'
+};
+
+// ─── DOM Elements ─────────────────────────────────────────────────────────────
 const authContainer = document.getElementById('auth-container');
+const citySelection = document.getElementById('city-selection');
 const mainApp = document.getElementById('main-app');
 const logoutBtn = document.getElementById('logout-btn');
+const changeCityBtn = document.getElementById('change-city-btn');
+const cityBadge = document.getElementById('city-badge');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const loginContainer = document.getElementById('login-form-container');
 const registerContainer = document.getElementById('register-form-container');
 
-// Auth Functions
+// ─── Auth Functions ───────────────────────────────────────────────────────────
 function checkAuth() {
   if (token) {
-    showApp();
+    showCitySelection();
   } else {
     showAuth();
   }
 }
 
-function showApp() {
-  authContainer.style.display = 'none';
-  mainApp.style.display = 'grid';
-  logoutBtn.style.display = 'block';
-  // Only init app if stations are empty (first load after login)
-  if (stations.length === 0) {
-    initApp();
-  }
-}
-
 function showAuth() {
   authContainer.style.display = 'flex';
+  citySelection.style.display = 'none';
   mainApp.style.display = 'none';
   logoutBtn.style.display = 'none';
+  changeCityBtn.style.display = 'none';
+  cityBadge.style.display = 'none';
   loginContainer.style.display = 'block';
   registerContainer.style.display = 'none';
+}
+
+function showCitySelection() {
+  authContainer.style.display = 'none';
+  citySelection.style.display = 'flex';
+  mainApp.style.display = 'none';
+  logoutBtn.style.display = 'block';
+  changeCityBtn.style.display = 'none';
+  cityBadge.style.display = 'none';
+  loadCities();
+}
+
+function showApp() {
+  authContainer.style.display = 'none';
+  citySelection.style.display = 'none';
+  mainApp.style.display = 'grid';
+  logoutBtn.style.display = 'block';
+  changeCityBtn.style.display = 'block';
+  cityBadge.style.display = 'inline-block';
+  cityBadge.textContent = `${CITY_EMOJIS[selectedCity.slug] || '🚇'} ${selectedCity.name}`;
+
+  // Reset and load
+  stations = [];
+  connections = [];
+  initApp();
 }
 
 function logout() {
   localStorage.removeItem('metro-token');
   token = null;
+  selectedCity = null;
   location.reload();
 }
 
-// Fetch Data & Initialize
+// ─── City Selection ───────────────────────────────────────────────────────────
+let allCities = [];
+
+async function loadCities() {
+  const grid = document.getElementById('cities-grid');
+  grid.innerHTML = `
+    <div class="city-loading">
+      <div class="loading-spinner"></div>
+      <p>Loading cities...</p>
+    </div>`;
+
+  try {
+    const res = await fetch(`${API_URL}/cities`);
+    if (!res.ok) throw new Error('Failed to fetch cities');
+    allCities = await res.json();
+    renderCityCards(allCities);
+  } catch (err) {
+    grid.innerHTML = `<div class="no-cities">
+      <p style="font-size:2rem">⚠️</p>
+      <p style="margin-top:0.5rem">Could not load cities. Make sure the backend is running.</p>
+    </div>`;
+  }
+}
+
+function renderCityCards(cities) {
+  const grid = document.getElementById('cities-grid');
+
+  if (cities.length === 0) {
+    grid.innerHTML = `<div class="no-cities">
+      <p style="font-size:2rem">🔍</p>
+      <p style="margin-top:0.5rem">No cities found</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = cities.map((city, i) => {
+    const emoji = CITY_EMOJIS[city.slug] || '🚇';
+    const gradient = CITY_GRADIENTS[city.slug] || 'linear-gradient(135deg, var(--primary), var(--secondary))';
+    return `
+    <div class="city-card" data-slug="${city.slug}" style="animation-delay: ${i * 0.07}s">
+      <div class="city-card-header">
+        <div class="city-icon" style="background: ${gradient}">
+          ${emoji}
+        </div>
+        <div class="city-status">
+          <div class="status-dot"></div>
+          Active
+        </div>
+      </div>
+      <div class="city-name">${city.name}</div>
+      <div class="city-state">${city.state}</div>
+      <div class="city-description">${city.description || 'Explore the metro network of this city.'}</div>
+      <div class="city-stats">
+        <div class="city-stat">
+          <div class="city-stat-value">${city.totalLines || '—'}</div>
+          <div class="city-stat-label">Lines</div>
+        </div>
+        <div class="city-stat">
+          <div class="city-stat-value">${city.totalStations || '—'}</div>
+          <div class="city-stat-label">Stations</div>
+        </div>
+      </div>
+      <div class="city-card-arrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Attach click listeners
+  grid.querySelectorAll('.city-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const slug = card.dataset.slug;
+      const city = allCities.find(c => c.slug === slug);
+      if (city) selectCity(city);
+    });
+  });
+}
+
+function selectCity(city) {
+  selectedCity = city;
+  showApp();
+}
+
+// ─── Search Filter ────────────────────────────────────────────────────────────
+document.getElementById('city-search').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  const filtered = allCities.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.state.toLowerCase().includes(q)
+  );
+  renderCityCards(filtered);
+});
+
+// ─── Metro App Init ───────────────────────────────────────────────────────────
 async function initApp() {
   try {
-    const res = await fetch(`${API_URL}/stations`);
+    const res = await fetch(`${API_URL}/cities/${selectedCity.slug}/stations`);
     if (!res.ok) throw new Error('Failed to fetch stations');
 
     const data = await res.json();
 
-    // Process data
     stations = data.map(s => ({
       id: s._id,
       name: s.name,
@@ -88,15 +224,14 @@ async function initApp() {
       lines: s.lines
     }));
 
-    // Derive connections from lines
     connections = deriveConnections(data);
 
     renderMap();
     populateDropdowns();
+    renderLineLegend();
 
   } catch (err) {
     console.error(err);
-    // Fallback or Alert
     const startSelect = document.getElementById('start-station');
     if (startSelect) {
       startSelect.innerHTML = '<option disabled>Error loading data</option>';
@@ -104,12 +239,10 @@ async function initApp() {
   }
 }
 
-
 function deriveConnections(stationData) {
   const lines = {};
   const edges = [];
 
-  // Group by line
   stationData.forEach(s => {
     s.lines.forEach(l => {
       if (!lines[l.line]) lines[l.line] = [];
@@ -117,7 +250,6 @@ function deriveConnections(stationData) {
     });
   });
 
-  // Create edges
   Object.keys(lines).forEach(lineName => {
     lines[lineName].sort((a, b) => a.sequence - b.sequence);
     const color = getLineColor(lineName);
@@ -135,7 +267,7 @@ function deriveConnections(stationData) {
   return edges;
 }
 
-// UI Rendering
+// ─── Map Rendering ────────────────────────────────────────────────────────────
 function renderMap() {
   const container = document.getElementById('map-container');
   container.innerHTML = '';
@@ -143,16 +275,15 @@ function renderMap() {
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
   svg.setAttribute("id", "metro-map");
-  svg.setAttribute("viewBox", "0 0 1200 1500");
+  svg.setAttribute("viewBox", "0 0 1500 1600");
   svg.style.width = "100%";
   svg.style.height = "100%";
 
   // Draw connections
   const edgesGroup = document.createElementNS(svgNS, "g");
-  connections.forEach((conn, index) => {
+  connections.forEach(conn => {
     const s1 = stations.find(s => s.id === conn.from);
     const s2 = stations.find(s => s.id === conn.to);
-
     if (!s1 || !s2) return;
 
     const line = document.createElementNS(svgNS, "line");
@@ -165,7 +296,6 @@ function renderMap() {
     line.setAttribute("class", "connection-line");
     line.dataset.from = s1.id;
     line.dataset.to = s2.id;
-
     edgesGroup.appendChild(line);
   });
   svg.appendChild(edgesGroup);
@@ -176,7 +306,6 @@ function renderMap() {
     group.setAttribute("class", "station-group");
     group.dataset.id = s.id;
 
-    // Pulse
     const pulse = document.createElementNS(svgNS, "circle");
     pulse.setAttribute("cx", s.x);
     pulse.setAttribute("cy", s.y);
@@ -185,7 +314,6 @@ function renderMap() {
     pulse.setAttribute("class", "pulse-circle");
     pulse.style.opacity = "0";
 
-    // Node
     const circle = document.createElementNS(svgNS, "circle");
     circle.setAttribute("cx", s.x);
     circle.setAttribute("cy", s.y);
@@ -193,20 +321,18 @@ function renderMap() {
     circle.setAttribute("class", "station-node");
     circle.dataset.id = s.id;
 
-    // Label
     const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", s.x);
-    text.setAttribute("y", s.y - 25);
+    text.setAttribute("y", s.y - 18);
     text.setAttribute("text-anchor", "middle");
     text.setAttribute("fill", "var(--text-main)");
-    text.setAttribute("font-size", "12px");
+    text.setAttribute("font-size", "11px");
     text.textContent = s.name;
     text.style.pointerEvents = "none";
 
     group.appendChild(pulse);
     group.appendChild(circle);
     group.appendChild(text);
-
     group.addEventListener('click', () => handleStationClick(s.id));
     svg.appendChild(group);
   });
@@ -214,7 +340,30 @@ function renderMap() {
   container.appendChild(svg);
 }
 
-// Logic: Handle selection
+function renderLineLegend() {
+  // Get unique lines
+  const lineSet = new Set();
+  connections.forEach(c => lineSet.add(c.line));
+
+  const panel = document.querySelector('.controls-panel');
+  const existing = panel.querySelector('.line-legend-wrapper');
+  if (existing) existing.remove();
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'line-legend-wrapper';
+  wrapper.innerHTML = `
+    <div style="font-size:0.8rem; color:var(--text-muted); font-weight:500; margin-bottom:0.5rem;">METRO LINES</div>
+    <div class="line-legend">
+      ${[...lineSet].map(line => `
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${getLineColor(line)}"></div>
+          <span>${line}</span>
+        </div>`).join('')}
+    </div>`;
+  panel.appendChild(wrapper);
+}
+
+// ─── Station Selection Logic ──────────────────────────────────────────────────
 let selectionState = 'start';
 
 function handleStationClick(id) {
@@ -222,7 +371,6 @@ function handleStationClick(id) {
   const startSelect = document.getElementById('start-station');
   const endSelect = document.getElementById('end-station');
 
-  // Using Names in select
   if (startSelect.value === '' || (startSelect.value !== '' && endSelect.value !== '')) {
     startSelect.value = station.name;
     endSelect.value = '';
@@ -265,7 +413,6 @@ function resetVisuals() {
     l.classList.remove('path-highlight');
     const from = l.dataset.from;
     const to = l.dataset.to;
-    // Find connection color
     const conn = connections.find(c => (c.from === from && c.to === to) || (c.from === to && c.to === from));
     if (conn) l.setAttribute('stroke', conn.color);
   });
@@ -274,13 +421,11 @@ function resetVisuals() {
 }
 
 function visualizePath(pathNames) {
-  // Convert path NAMES to IDs for visualization
   const pathIds = pathNames.map(name => {
     const s = stations.find(st => st.name === name);
     return s ? s.id : null;
   }).filter(id => id !== null);
 
-  // Highlight Nodes
   pathIds.forEach(id => {
     const node = document.querySelector(`.station-node[data-id="${id}"]`);
     if (node) {
@@ -289,7 +434,6 @@ function visualizePath(pathNames) {
     }
   });
 
-  // Highlight Edges
   for (let i = 0; i < pathIds.length - 1; i++) {
     const u = pathIds[i];
     const v = pathIds[i + 1];
@@ -305,26 +449,25 @@ function visualizePath(pathNames) {
   }
 }
 
-// Populate Dropdowns
+// ─── Dropdowns ────────────────────────────────────────────────────────────────
 function populateDropdowns() {
   const startSelect = document.getElementById('start-station');
   const endSelect = document.getElementById('end-station');
 
-  // Clear generic options if any (except first)
   while (startSelect.options.length > 1) startSelect.remove(1);
   while (endSelect.options.length > 1) endSelect.remove(1);
 
   stations.sort((a, b) => a.name.localeCompare(b.name)).forEach(s => {
-    startSelect.add(new Option(s.name, s.name)); // Using Name 
+    startSelect.add(new Option(s.name, s.name));
     endSelect.add(new Option(s.name, s.name));
   });
 }
 
-// Setup Event Listeners
+// ─── Event Listeners ──────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
 
-  // Auth Listeners
+  // Auth toggles
   document.getElementById('show-register').addEventListener('click', (e) => {
     e.preventDefault();
     loginContainer.style.display = 'none';
@@ -337,11 +480,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loginContainer.style.display = 'block';
   });
 
+  // Login
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
-
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -350,21 +493,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-
       token = data.token;
       localStorage.setItem('metro-token', token);
-      showApp();
+      showCitySelection();
     } catch (err) {
       alert(err.message);
     }
   });
 
+  // Register
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('reg-name').value;
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
-
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -373,10 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-
       token = data.token;
       localStorage.setItem('metro-token', token);
-      showApp();
+      showCitySelection();
     } catch (err) {
       alert(err.message);
     }
@@ -384,15 +525,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   logoutBtn.addEventListener('click', logout);
 
+  // Change city
+  changeCityBtn.addEventListener('click', () => {
+    selectedCity = null;
+    stations = [];
+    connections = [];
+    showCitySelection();
+  });
 
+  // Dropdown changes
   const startSelect = document.getElementById('start-station');
   const endSelect = document.getElementById('end-station');
 
-  // Handle dropdown changes to highlight
   startSelect.addEventListener('change', () => {
     const s = stations.find(st => st.name === startSelect.value);
     if (s) {
-      resetVisuals(); // partially reset
+      resetVisuals();
       highlightStation(s.id, 'start');
       if (endSelect.value) {
         const e = stations.find(st => st.name === endSelect.value);
@@ -406,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (s) highlightStation(s.id, 'end');
   });
 
+  // Find Route
   document.getElementById('find-route-btn').addEventListener('click', async () => {
     const startName = startSelect.value;
     const endName = endSelect.value;
@@ -425,14 +574,16 @@ document.addEventListener('DOMContentLoaded', () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ from: startName, to: endName })
+        body: JSON.stringify({
+          from: startName,
+          to: endName,
+          citySlug: selectedCity ? selectedCity.slug : undefined
+        })
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.message || 'Error finding path');
 
-      // Show result
       resetVisuals();
       const startS = stations.find(s => s.name === startName);
       const endS = stations.find(s => s.name === endName);
@@ -440,9 +591,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (endS) highlightStation(endS.id, 'end');
 
       document.getElementById('results-panel').style.display = 'block';
-      setTimeout(() => {
-        document.getElementById('results-panel').style.opacity = '1';
-      }, 10);
 
       let resultValue = "";
       let label = "";
@@ -450,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (priority === 'stations') {
         resultValue = data.stationsCount;
         label = "Count";
-      } else if (priority === 'cost') { // min-cost
+      } else if (priority === 'cost') {
         resultValue = '₹' + data.cost;
         label = "Cost";
       } else {
@@ -459,10 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       document.getElementById('total-time').textContent = resultValue;
-      // Update label based on result type if we want, but UI hardcodes "Total Time". 
-      // Better to update label
       document.querySelector('.result-stat span:first-child').textContent = label;
-
       document.getElementById('path-stations-count').textContent = data.path.length;
       document.getElementById('path-details').textContent = data.path.join(' → ');
 

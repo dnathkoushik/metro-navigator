@@ -44,6 +44,8 @@ const stationRoutes = require('./routes/stationRoutes');
 app.use('/api/stations', stationRoutes);
 const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/admin', adminRoutes);
+const cityRoutes = require('./routes/cityRoutes');
+app.use('/api/cities', cityRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

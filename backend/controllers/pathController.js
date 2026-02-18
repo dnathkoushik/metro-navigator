@@ -1,4 +1,5 @@
 const Station = require('../models/Station');
+const City = require('../models/City');
 
 // Helper to build graph from stations
 const buildGraph = (stations) => {
@@ -88,13 +89,19 @@ const getShortestPathBFS = (start, end, adj) => {
 
 const getMinStationsPath = async (req, res) => {
     try {
-        const { from, to } = req.body;
+        const { from, to, citySlug } = req.body;
 
         if (!from || !to) {
             return res.status(400).json({ message: 'Please provide start and destination stations' });
         }
 
-        const stations = await Station.find({});
+        let query = {};
+        if (citySlug) {
+            const city = await City.findOne({ slug: citySlug });
+            if (city) query.city = city._id;
+        }
+
+        const stations = await Station.find(query);
         const adj = buildGraph(stations); // Build adjacency list
 
         // Check if stations exist in the graph
@@ -266,10 +273,16 @@ const getShortestPathDijkstra = (start, end, adj, transferPenalty = 0) => {
 
 const getMinTimePath = async (req, res) => {
     try {
-        const { from, to } = req.body;
+        const { from, to, citySlug } = req.body;
         if (!from || !to) return res.status(400).json({ message: 'Please provide start and destination stations' });
 
-        const stations = await Station.find({});
+        let query = {};
+        if (citySlug) {
+            const city = await City.findOne({ slug: citySlug });
+            if (city) query.city = city._id;
+        }
+
+        const stations = await Station.find(query);
         const adj = buildWeightedGraph(stations);
 
         if (!adj[from] || !adj[to]) return res.status(404).json({ message: 'Invalid station names' });
@@ -337,10 +350,16 @@ const calculateFare = (distance) => {
 
 const getMinCostPath = async (req, res) => {
     try {
-        const { from, to } = req.body;
+        const { from, to, citySlug } = req.body;
         if (!from || !to) return res.status(400).json({ message: 'Please provide start and destination stations' });
 
-        const stations = await Station.find({});
+        let query = {};
+        if (citySlug) {
+            const city = await City.findOne({ slug: citySlug });
+            if (city) query.city = city._id;
+        }
+
+        const stations = await Station.find(query);
         const adj = buildDistanceGraph(stations);
 
         if (!adj[from] || !adj[to]) return res.status(404).json({ message: 'Invalid station names' });

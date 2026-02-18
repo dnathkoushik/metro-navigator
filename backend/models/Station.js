@@ -3,8 +3,12 @@ const mongoose = require('mongoose');
 const stationSchema = mongoose.Schema({
     name: {
         type: String,
-        required: true,
-        unique: true
+        required: true
+    },
+    city: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'City',
+        required: true
     },
     lines: [{
         line: {
@@ -33,5 +37,8 @@ const stationSchema = mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// Compound unique index: station name must be unique within a city
+stationSchema.index({ name: 1, city: 1 }, { unique: true });
 
 module.exports = mongoose.model('Station', stationSchema);

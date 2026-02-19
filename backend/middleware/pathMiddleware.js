@@ -9,7 +9,8 @@ const validatePathQuery = (req, res, next) => {
         to: Joi.string().required().messages({
             'string.empty': 'Destination station (to) is required',
             'any.required': 'Destination station (to) is required'
-        })
+        }),
+        citySlug: Joi.string().optional()
     });
 
     const { error } = schema.validate(req.body);

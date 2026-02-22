@@ -12,3 +12,5 @@ router.get('/:slug', getCityBySlug);
 router.get('/:slug/stations', getCityStations);
 
 module.exports = router;
+
+
